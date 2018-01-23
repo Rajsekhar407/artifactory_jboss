@@ -1,0 +1,52 @@
+---
+- hosts: all 
+  remote_user: centos
+  become_method : sudo
+  become: yes
+  gather_facts: no
+  vars_files:
+    - secret  
+  tasks:
+    - name: upgrade all packages
+      yum: name=* state=latest
+    
+    - name: download java
+      command: "wget --no-check-certificate --no-cookies --header 'Cookie: oraclelicense=accept-securebackup-cookie' http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.rpm"
+
+    - name: Install java
+      command: sudo yum localinstall jdk-8u151-linux-x64.rpm -y
+
+    - name: Install wget
+      yum: name=wget state=present
+
+    - name: Install EPEL repo
+      yum: name=epel-release state=present
+
+    - name: download jfrog 
+      get_url:
+        url: https://api.bintray.com/content/jfrog/artifactory-rpms/jfrog-artifactory-oss-5.8.2.rpm;bt_package=jfrog-artifactory-oss-rpm 
+        dest: /opt/
+  
+    - name: Install jfrog
+      yum: name=/opt/jfrog-artifactory-oss-5.8.2.rpm state=present
+ 
+    - name: reload systemd
+      command: systemctl daemon-reload
+
+    - name: start artifactory
+      command: systemctl start artifactory
+
+    - name: enable artifactory
+      systemd:
+        name: artifactory 
+        enabled: yes
+     
+
+
+
+
+
+
+
+
+
